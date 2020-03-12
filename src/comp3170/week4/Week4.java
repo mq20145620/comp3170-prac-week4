@@ -42,8 +42,8 @@ public class Week4 extends JFrame implements GLEventListener {
 	
 	private Matrix4d viewMatrix;
 
-	private int viewWidth = 10;
-	private int viewHeight = 10;
+	private int viewWidth = 20;
+	private int viewHeight = 20;
 
 	private Snake snake;
 

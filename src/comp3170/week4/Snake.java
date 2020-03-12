@@ -1,5 +1,7 @@
 package comp3170.week4;
 
+import java.awt.event.KeyEvent;
+
 import org.joml.Matrix4d;
 import org.joml.Vector2d;
 
@@ -45,21 +47,38 @@ public class Snake {
 	
 	private Matrix4d matrix;
 	
-	private final float SPEED = 1.0f;	// m per sec
-	private final float TURN_SPEED = (float) (Math.PI * 2.0f / 6.0f);	// radians per sec
+	private final float SPEED = 2.0f;	// m per sec
+	private final float TURN_SPEED = (float) (Math.PI * 2.0f / 4.0f);	// radians per sec
 
 	private Vector2d position = new Vector2d(0,0);
 	private float heading = 0;
 		
+	private Vector2d movement;
+	
 	public Snake(Shader shader) {
 	    this.vertexBuffer = shader.createBuffer(this.vertices);
 	    this.matrix = new Matrix4d();
 		this.matrix.identity();
 		
+		this.movement = new Vector2d(0,0);
+		
 	}
 
 	public void update(float dt, InputManager input) {
-		// TODO: move the snake
+
+		if (input.isKeyDown(KeyEvent.VK_LEFT)) {
+			heading = (float) ((heading + TURN_SPEED * dt) % (Math.PI * 2));
+		}
+		if (input.isKeyDown(KeyEvent.VK_RIGHT)) {
+			heading = (float) ((heading - TURN_SPEED * dt) % (Math.PI * 2));
+		}
+		
+		// constant moving forward
+		movement.x = Math.cos(heading);
+		movement.y = Math.sin(heading);
+		movement.mul(SPEED * dt);
+
+		position.add(movement);
 	}
 	
 	public void draw(Shader shader) {
@@ -67,6 +86,9 @@ public class Snake {
 
 		// TODO: construct the matrix in TRaSHeS order
 		this.matrix.identity();
+		this.matrix.translate(position.x, position.y, 0);
+		this.matrix.rotateZ(heading);
+		this.matrix.scale(HEAD_LENGTH, HEAD_WIDTH, 1);
 		
 		shader.setUniform("u_worldMatrix", this.matrix);
 		
