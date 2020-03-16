@@ -11,7 +11,6 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-import org.joml.Matrix4d;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -122,9 +121,6 @@ public class Week4 extends JFrame implements GLEventListener {
 		
 	}
 	
-	private Vector4f position = new Vector4f();
-	private Vector4f dragPosition = new Vector4f();
-
 	private void updateScene() {
 		if (input.isMouseDown()) {
 			
