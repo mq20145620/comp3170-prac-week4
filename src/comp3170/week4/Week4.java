@@ -40,10 +40,10 @@ public class Week4 extends JFrame implements GLEventListener {
 	private Animator animator; 
 	private long oldTime;	
 	
-	private Matrix4d viewMatrix;
-
-	private int viewWidth = 10;
-	private int viewHeight = 10;
+	private Matrix4f viewMatrix;
+	
+	private float viewWidth = 20;
+	private float viewHeight = 20;
 
 	private Snake snake;
 
@@ -104,23 +104,24 @@ public class Week4 extends JFrame implements GLEventListener {
 		}
 				
 		// allocate matrices
-		this.viewMatrix = new Matrix4d();
+		this.viewMatrix = new Matrix4f();
 		
-		this.snake = new Snake(this.shader);
+		// create a flower
+		this.currentFlower = new Flower(shader, 6);
+		this.flowers.add(this.currentFlower);
 		
 	}
 
 	private void updateScene() {
-		long time = System.currentTimeMillis();
-		float dt = (time - oldTime) / 1000f;
-		oldTime = time;
-
-		// move the snake
-		
-		this.snake.update(dt, this.input);
-		
-		// at the end of the update, clear the input manager
-		input.clear();
+		if (input.isMouseDown()) {
+			
+			if (currentFlower == null) {
+				// TODO: create a new flower at the mouse position 
+			}			
+		}
+		else {
+			currentFlower = null;
+		}
 	}
 	
 	@Override
@@ -143,7 +144,7 @@ public class Week4 extends JFrame implements GLEventListener {
 		this.viewMatrix.scaling(2.0f / this.viewWidth, 2.0f / this.viewHeight, 1);
 		this.shader.setUniform("u_viewMatrix", this.viewMatrix);
 		
-		// draw the snake 
+		// draw the flowers
 		
 		this.snake.draw(this.shader);
 		
@@ -156,6 +157,8 @@ public class Week4 extends JFrame implements GLEventListener {
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 
+		// TODO: Recalculate the view dimensions to keep the correct aspect ratio
+		
 	}
 
 	@Override
