@@ -6,12 +6,15 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 
 import org.joml.Matrix4d;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -38,14 +41,15 @@ public class Week4 extends JFrame implements GLEventListener {
 
 	private InputManager input;
 	private Animator animator; 
-	private long oldTime;	
 	
-	private Matrix4d viewMatrix;
+	private Matrix4f viewMatrix;
+	private Matrix4f inverseViewMatrix;
 
-	private int viewWidth = 20;
-	private int viewHeight = 20;
+	private float viewWidth = 20;
+	private float viewHeight = 20;
 
-	private Snake snake;
+	private List<Flower> flowers;
+	private Flower currentFlower = null;
 
 
 	public Week4() {
@@ -63,13 +67,16 @@ public class Week4 extends JFrame implements GLEventListener {
 		
 		this.input = new InputManager();
 		this.addKeyListener(this.input);
-		this.canvas.addKeyListener(this.input);
+		this.addMouseListener(input);
+		this.addMouseMotionListener(input);
+		canvas.addKeyListener(this.input);
+		canvas.addMouseListener(input);
+		canvas.addMouseMotionListener(input);
 
 		// set up Animator
 		
 		this.animator = new Animator(canvas);
 		this.animator.start();
-		this.oldTime = System.currentTimeMillis();
 		
 		// set up the JFrame		
 		
@@ -80,6 +87,10 @@ public class Week4 extends JFrame implements GLEventListener {
 				System.exit(0);
 			}
 		});	
+		
+		// initialise flowers
+		
+		this.flowers = new ArrayList<Flower>();
 		
 	}
 
@@ -104,23 +115,50 @@ public class Week4 extends JFrame implements GLEventListener {
 		}
 				
 		// allocate matrices
-		this.viewMatrix = new Matrix4d();
-		
-		this.snake = new Snake(this.shader);
+		this.viewMatrix = new Matrix4f();
+		this.inverseViewMatrix = new Matrix4f();
 		
 	}
+	
+	private Vector4f position = new Vector4f();
+	private Vector4f dragPosition = new Vector4f();
 
 	private void updateScene() {
-		long time = System.currentTimeMillis();
-		float dt = (time - oldTime) / 1000f;
-		oldTime = time;
+		if (input.isMouseDown()) {
+			
+			if (currentFlower == null) {
+				input.getMousePosition(position);
 
-		// move the snake
+				// convert to NDC
+				position.mul(2.0f / this.canvas.getWidth(), 2.0f / this.canvas.getHeight(), 1, 1);
+				position.add(-1f, -1f, 0, 0);
+				position.y = -position.y;
+				
+				// convert to world
+				this.viewMatrix.invert(this.inverseViewMatrix);
+				position.mul(this.inverseViewMatrix);
+				System.out.println(String.format("pos = (%1f, %1f)",position.x, position.y));
+				
+				
+				// plant a new flower at the cursor
+				this.currentFlower = new Flower(this.shader, 6);
+				this.flowers.add(currentFlower);
+				this.currentFlower.setPosition(position);
+
+				
+				// add a random angle and scale
+				
+				float angle = ((float)Math.random() * 2 -1) * TAU / 12;
+				float scale = 1 + ((float)Math.random() * 2 -1) * 0.2f;
+				this.currentFlower.setAngle(angle);
+				this.currentFlower.setScale(scale);
+			}
 		
-		this.snake.update(dt, this.input);
-		
-		// at the end of the update, clear the input manager
-		input.clear();
+			
+		}
+		else {
+			currentFlower = null;
+		}
 	}
 	
 	@Override
@@ -133,7 +171,7 @@ public class Week4 extends JFrame implements GLEventListener {
 		updateScene();
 	
 		// set the background colour 
-		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);	// white
+		gl.glClearColor(87f / 255, 60f/255f, 23f/255, 1.0f);	
 		gl.glClear(GL_COLOR_BUFFER_BIT);		
 		
 		this.shader.enable();
@@ -145,7 +183,9 @@ public class Week4 extends JFrame implements GLEventListener {
 		
 		// draw the snake 
 		
-		this.snake.draw(this.shader);
+		for (Flower flower : this.flowers) {
+			flower.draw(this.shader);			
+		}
 		
 	}
 
@@ -155,7 +195,9 @@ public class Week4 extends JFrame implements GLEventListener {
 	 */
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-
+		float aspect = (float)width / height;
+		
+		this.viewWidth = aspect * this.viewHeight;
 	}
 
 	@Override
