@@ -41,7 +41,8 @@ public class Week4 extends JFrame implements GLEventListener {
 
 	private InputManager input;
 	private Animator animator; 
-	
+	private long oldTime;
+
 	private Matrix4f viewMatrix;
 	private Matrix4f inverseViewMatrix;
 
@@ -77,6 +78,7 @@ public class Week4 extends JFrame implements GLEventListener {
 		
 		this.animator = new Animator(canvas);
 		this.animator.start();
+		this.oldTime = System.currentTimeMillis();
 		
 		// set up the JFrame		
 		
@@ -121,9 +123,13 @@ public class Week4 extends JFrame implements GLEventListener {
 	}
 	
 	private Vector4f position = new Vector4f();
-	private Vector4f dragPosition = new Vector4f();
-
+	
+	
 	private void updateScene() {
+		long time = System.currentTimeMillis();
+		float dt = (time - oldTime) / 1000f;
+		oldTime = time;
+		
 		if (input.isMouseDown()) {
 			
 			if (currentFlower == null) {
@@ -137,14 +143,12 @@ public class Week4 extends JFrame implements GLEventListener {
 				// convert to world
 				this.viewMatrix.invert(this.inverseViewMatrix);
 				position.mul(this.inverseViewMatrix);
-				System.out.println(String.format("pos = (%1f, %1f)",position.x, position.y));
 				
 				
 				// plant a new flower at the cursor
 				this.currentFlower = new Flower(this.shader, 6);
 				this.flowers.add(currentFlower);
 				this.currentFlower.setPosition(position);
-
 				
 				// add a random angle and scale
 				
@@ -158,6 +162,10 @@ public class Week4 extends JFrame implements GLEventListener {
 		}
 		else {
 			currentFlower = null;
+		}
+		
+		for (Flower flower : flowers) {
+			flower.update(dt);
 		}
 	}
 	

@@ -10,8 +10,12 @@ import com.jogamp.opengl.GLContext;
 import comp3170.Shader;
 
 public class Flower {
-
+	
 	private final float TAU = (float)Math.PI * 2;
+	
+	private final float MAX_ANGLE = TAU / 12;
+	private final float SWAY_SPEED = TAU / 12; // radians per second
+
 	
 	private final float WIDTH = 0.1f;
 	private final float HEIGHT = 1f;
@@ -48,13 +52,16 @@ public class Flower {
 
 	private float[] headVertices;
 	private int headVertexBuffer;
-	private float[] headColour = {1.0f, 1.0f, 0};
+	private float[] headColourIn = {1.0f, 1.0f, 0};
+	private float[] headColourOut = {1.0f, 0.0f, 0};
 		
 	private Matrix4f matrix;
 	
 	private Vector4f position = new Vector4f(0,0,0,1);
 	private float angle = 0;
 	private float scale = 1;
+	
+	private float sway = 1.0f;
 	
 	public Flower(Shader shader, int nPetals) {
 	    this.stemVertexBuffer = shader.createBuffer(this.stemVertices);
@@ -134,7 +141,8 @@ public class Flower {
 		
 		shader.setUniform("u_worldMatrix", this.matrix);
 		shader.setAttribute("a_position", this.stemVertexBuffer);	    
-		shader.setUniform("u_colour", this.stemColour);	    
+		shader.setUniform("u_innerColour", this.stemColour);	    
+		shader.setUniform("u_outerColour", this.stemColour);	    
         gl.glDrawArrays(GL.GL_TRIANGLES, 0, this.stemVertices.length / 2);
         
         this.matrix.translate(0, this.HEIGHT, 0);
@@ -143,9 +151,20 @@ public class Flower {
 
         shader.setUniform("u_worldMatrix", this.matrix);
 		shader.setAttribute("a_position", this.headVertexBuffer);	    
-		shader.setUniform("u_colour", this.headColour);	    
+		shader.setUniform("u_innerColour", this.headColourIn);	    
+		shader.setUniform("u_outerColour", this.headColourOut);	    
         gl.glDrawArrays(GL.GL_TRIANGLES, 0, this.headVertices.length / 2);
 
+	}
+
+	public void update(float dt) {
+		float da = sway * SWAY_SPEED * dt;
+		if (Math.abs(this.angle + da) > MAX_ANGLE) {
+			sway = -sway;
+			da = -da;
+		}
+		
+		this.angle += da;
 	}
 	
 }
