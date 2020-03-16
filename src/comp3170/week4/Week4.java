@@ -6,12 +6,15 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 
 import org.joml.Matrix4d;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -38,14 +41,14 @@ public class Week4 extends JFrame implements GLEventListener {
 
 	private InputManager input;
 	private Animator animator; 
-	private long oldTime;	
 	
 	private Matrix4f viewMatrix;
 	
 	private float viewWidth = 20;
 	private float viewHeight = 20;
 
-	private Snake snake;
+	private List<Flower> flowers;
+	private Flower currentFlower = null;
 
 
 	public Week4() {
@@ -63,13 +66,16 @@ public class Week4 extends JFrame implements GLEventListener {
 		
 		this.input = new InputManager();
 		this.addKeyListener(this.input);
-		this.canvas.addKeyListener(this.input);
+		this.addMouseListener(input);
+		this.addMouseMotionListener(input);
+		canvas.addKeyListener(this.input);
+		canvas.addMouseListener(input);
+		canvas.addMouseMotionListener(input);
 
 		// set up Animator
 		
 		this.animator = new Animator(canvas);
 		this.animator.start();
-		this.oldTime = System.currentTimeMillis();
 		
 		// set up the JFrame		
 		
@@ -80,6 +86,10 @@ public class Week4 extends JFrame implements GLEventListener {
 				System.exit(0);
 			}
 		});	
+		
+		// initialise flowers
+		
+		this.flowers = new ArrayList<Flower>();
 		
 	}
 
@@ -111,6 +121,9 @@ public class Week4 extends JFrame implements GLEventListener {
 		this.flowers.add(this.currentFlower);
 		
 	}
+	
+	private Vector4f position = new Vector4f();
+	private Vector4f dragPosition = new Vector4f();
 
 	private void updateScene() {
 		if (input.isMouseDown()) {
@@ -134,7 +147,7 @@ public class Week4 extends JFrame implements GLEventListener {
 		updateScene();
 	
 		// set the background colour 
-		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);	// white
+		gl.glClearColor(87f / 255, 60f/255f, 23f/255, 1.0f);	
 		gl.glClear(GL_COLOR_BUFFER_BIT);		
 		
 		this.shader.enable();
@@ -146,7 +159,9 @@ public class Week4 extends JFrame implements GLEventListener {
 		
 		// draw the flowers
 		
-		this.snake.draw(this.shader);
+		for (Flower flower : this.flowers) {
+			flower.draw(this.shader);			
+		}
 		
 	}
 

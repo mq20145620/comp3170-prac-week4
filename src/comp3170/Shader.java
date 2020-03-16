@@ -311,6 +311,28 @@ public class Shader {
 	 * @param matrix		the matrix value to send
 	 */
 	
+	public void setUniform(String uniformName, Matrix4f matrix) {
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		int uniform = getUniform(uniformName);
+		int type = uniformTypes.get(uniformName);
+
+		if (type != GL_FLOAT_MAT4) {
+			throw new IllegalArgumentException(
+					String.format("Expected %s got Matrix4d", typeName(type)));			
+		}
+
+		// Ideally this buffer should be allocated once are reused, to reduce memory management
+		
+		gl.glUniformMatrix4fv(uniform, 1, false, matrix.get(matrixBuffer));
+	}
+
+	/**
+	 * Set a uniform of type mat4 to a Matrix4 value
+	 * 
+	 * @param uniformName	the uniform to set
+	 * @param matrix		the matrix value to send
+	 */
+	
 	public void setUniform(String uniformName, Matrix4d matrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
